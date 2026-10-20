@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Депозит</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5; --card-bg-color: #ffffff; --primary-text-color: #1c1e21;
+            --secondary-text-color: #606770; --border-color: #ced0d4; --input-bg-color: #f5f6f7;
+            --accent-color: #007bff; --accent-color-dark: #0056b3;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color); color: var(--primary-text-color); margin: 0;
+            padding: 15px; font-size: 16px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 20px; }
+        .card { background-color: var(--card-bg-color); border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: var(--secondary-text-color); }
+        .sum-preview {
+            font-weight: normal; margin-left: 8px; color: var(--accent-color);
+            vertical-align: text-bottom;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+        .copy-preview-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--secondary-text-color);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 1px 5px;
+            margin-left: 6px;
+            border-radius: 4px;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .copy-preview-btn:hover {
+            background-color: var(--input-bg-color);
+            border-color: var(--accent-color);
+        }
+        textarea {
+            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg-color);
+            box-sizing: border-box; font-size: 1.1em; color: var(--primary-text-color); -webkit-appearance: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            resize: none;
+            overflow-y: hidden;
+        }
+        textarea:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); }
+        textarea::placeholder { color: #adb5bd; opacity: 1; }
+        .rates-container { display: flex; gap: 10px; }
+        .rates-container .form-group { flex: 1; margin-bottom: 0; }
+        .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 6px; font-size: 1.1em; font-weight: 600; cursor: pointer; text-align: center; margin-bottom: 10px; }
+        #calculateBtn { background-color: var(--accent-color); color: white; }
+        #calculateBtn:hover { background-color: var(--accent-color-dark); }
+        #copyBtn { background-color: #e4e6eb; color: var(--primary-text-color); margin-top: 15px;}
+        #resultOutput {
+            width: 100%; height: 250px; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px;
+            background-color: var(--input-bg-color); box-sizing: border-box; font-family: monospace; font-size: 0.9em;
+            color: var(--primary-text-color); resize: vertical; margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Депозит</h1>
+        <div class="card">
+            <div class="form-group">
+                <label for="initialDeposit">Начальный депозит <span class="sum-preview" id="initialDeposit-sum"></span></label>
+                <textarea id="initialDeposit" placeholder="-15000" inputmode="decimal" rows="1"></textarea>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Курсы</h2>
+            <div class="rates-container">
+                <div class="form-group"><label for="rateQr">Qr</label><textarea id="rateQr" placeholder="0.0" inputmode="decimal" rows="1"></textarea></div>
+                <div class="form-group"><label for="rateCard">Карты</label><textarea id="rateCard" placeholder="0.0" inputmode="decimal" rows="1"></textarea></div>
+                <div class="form-group"><label for="rateUs">Us</label><textarea id="rateUs" placeholder="0.0" inputmode="decimal" rows="1"></textarea></div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Операции</h2>
+            <div class="form-group"><label for="opsTopUp">Пополнение <span class="sum-preview" id="opsTopUp-sum"></span></label><textarea id="opsTopUp" placeholder="10000+5000" inputmode="decimal" rows="1"></textarea></div>
+            <div class="form-group" style="background-color: #e7f5ec; padding: 15px; border-radius: 6px;">
+                <label for="opsUsdt">Пополнение USDT <span class="sum-preview" id="opsUsdt-sum"></span></label>
+                <textarea id="opsUsdt" placeholder="2231" inputmode="decimal" rows="1"></textarea>
+                <div class="rates-container" style="margin-top: 10px;">
+                    <div class="form-group"><label for="rateUsdt">Курс USDT</label><textarea id="rateUsdt" placeholder="6.59" inputmode="decimal" rows="1"></textarea></div>
+                    <div class="form-group"><label for="usdtTarget">Добавить в расчёт</label>
+                        <select id="usdtTarget" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg-color); font-size: 1.1em; box-sizing: border-box;">
+                            <option value="qr">Оплаты</option>
+                            <option value="golden">Golden</option>
+                            <option value="goldenBalance">Golden балансы</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="background-color: #fdf3e1; padding: 15px; border-radius: 6px;">
+                <label for="opsYuan">Пополнение юани <span class="sum-preview" id="opsYuan-sum"></span></label>
+                <textarea id="opsYuan" placeholder="1000" inputmode="decimal" rows="1"></textarea>
+                <div class="form-group" style="margin-top: 10px; margin-bottom: 0;"><label for="yuanTarget">Добавить в расчёт</label>
+                    <select id="yuanTarget" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg-color); font-size: 1.1em; box-sizing: border-box;">
+                        <option value="qr">Оплаты</option>
+                        <option value="golden">Golden</option>
+                        <option value="goldenBalance">Golden балансы</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label for="opsQr">Оплаты Qr <span class="sum-preview" id="opsQr-sum"></span></label><textarea id="opsQr" placeholder="3500+1900" inputmode="decimal" rows="1"></textarea></div>
+            <div class="form-group"><label for="opsGolden">Golden <span class="sum-preview" id="opsGolden-sum"></span></label><textarea id="opsGolden" placeholder="3500+1900" inputmode="decimal" rows="1"></textarea></div>
+            <div class="rates-container" style="margin-bottom: 15px;">
+                <div class="form-group"><label for="opsGoldenBalances">Golden балансы <span class="sum-preview" id="opsGoldenBalances-sum"></span></label><textarea id="opsGoldenBalances" placeholder="1000+500" inputmode="decimal" rows="1"></textarea></div>
+                <div class="form-group"><label for="opsGoldenBalance">Баланс</label><textarea id="opsGoldenBalance" placeholder="10000" inputmode="decimal" rows="1"></textarea></div>
+            </div>
+            <div class="form-group" style="background-color: #e9ecef; padding: 15px; border-radius: 6px;">
+                <label for="opsQrBuyouts">Выкупы Qr (наша цена)</label>
+                <span class="sum-preview" id="opsQrBuyouts-sum"></span><br>
+                <span class="sum-preview" id="opsQrBuyouts-sum-percent"></span>
+                <textarea id="opsQrBuyouts" placeholder="500+250" inputmode="decimal" rows="1"></textarea>
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #ced0d4;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label for="opsQrForGrouping">Выкупы для группировки</label>
+                    <span class="sum-preview" id="opsQrForGrouping-sum"></span>
+                    <textarea id="opsQrForGrouping" placeholder="12000+8000+..." inputmode="decimal" rows="1"></textarea>
+                </div>
+                <textarea id="qrBuyoutsBreakdown" readonly style="width: 100%; min-height: 40px; margin-top: 10px; resize: none; overflow-y: hidden; background-color: #fff; font-family: monospace; font-size: 0.9em;" placeholder="Здесь появится расклад по группам..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="opsQrBuyoutsClient">Выкупы Qr (цена для клиента)</label>
+                <span class="sum-preview" id="opsQrBuyoutsClient-sum"></span><br>
+                <textarea id="opsQrBuyoutsClient" placeholder="510+255" inputmode="decimal" rows="1"></textarea>
+            </div>
+            <div class="form-group"><label for="opsCard">Карты <span class="sum-preview" id="opsCard-sum"></span></label><textarea id="opsCard" placeholder="10000+2500" inputmode="decimal" rows="1"></textarea></div>
+            <div class="form-group"><label for="opsUs">Us <span class="sum-preview" id="opsUs-sum"></span></label><textarea id="opsUs" placeholder="100+50" inputmode="decimal" rows="1"></textarea></div>
+            <div class="form-group"><label for="opsWarehouse">Расход по складу <span class="sum-preview" id="opsWarehouse-sum"></span></label><textarea id="opsWarehouse" placeholder="123" inputmode="decimal" rows="1"></textarea></div>
+            
+            <div id="extraExpensesContainer"></div>
+            <button id="addExpenseBtn" class="btn" style="background-color: #6c757d; color: white; margin-top: 10px;">+ Добавить расход</button>
+
+        </div>
+        <div class="card">
+            <h2>Результат</h2>
+            <button id="calculateBtn" class="btn">Рассчитать</button>
+            <textarea id="resultOutput" readonly placeholder="Здесь появится результат..."></textarea>
+            <button id="copyBtn" class="btn">Копировать</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputIds = [
+                'initialDeposit', 'rateQr', 'rateCard', 'rateUs',
+                'opsUsdt', 'rateUsdt', 'opsYuan', 'opsGolden', 'opsGoldenBalances', 'opsGoldenBalance',
+                'opsTopUp', 'opsQr', 'opsQrBuyouts', 'opsQrForGrouping', 'opsQrBuyoutsClient', 'opsCard', 'opsUs', 'opsWarehouse'
+            ];
+            
+            const formatNumber = (num) => num.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            const parseToNumber = (str) => parseFloat(String(str).replace(/\s/g, '').replace(',', '.')) || 0;
+
+            function advancedParse(value) {
+                if (!value) return { sum: 0, formattedParts: [] };
+
+                // Temporarily replace '+' inside parentheses to prevent incorrect splitting
+                const placeholder = '__PLUS__';
+                const processedValue = value.replace(/\(([^)]+)\)/g, (match) => {
+                    return match.replace(/\+/g, placeholder);
+                });
+
+                const parts = processedValue.split('+');
+                let totalSum = 0;
+                const formattedParts = [];
+                const percentRegex = /^\(\s*([\d\s.,]+)\s*\+\s*([\d\s.,]+)%\s*\)$/;
+
+                for (const part of parts) {
+                    // Put the '+' back for processing
+                    const originalPart = part.replace(new RegExp(placeholder, 'g'), '+');
+                    const trimmedPart = originalPart.trim();
+
+                    if (!trimmedPart) continue;
+
+                    const percentMatch = trimmedPart.match(percentRegex);
+
+                    if (percentMatch) {
+                        const baseNum = parseToNumber(percentMatch[1]);
+                        const percent = parseToNumber(percentMatch[2]);
+                        const result = baseNum * (1 + percent / 100);
+                        const roundedResult = Math.ceil(result); // Округляем результат вверх
+                        totalSum += roundedResult; // Используем округленное значение в общей сумме
+                        
+                        const formattedBase = formatNumber(baseNum);
+                        const formattedPercent = formatNumber(percent);
+                        const formattedUnroundedResult = formatNumber(result); // Неокругленный результат для отображения
+                        const formattedRoundedResult = formatNumber(roundedResult); // Округленный результат
+                        
+                        // Новый формат: (6 782+2,5%=6 951,55)=6 952
+                        formattedParts.push(`(${formattedBase}+${formattedPercent}%=${formattedUnroundedResult})=${formattedRoundedResult}`);
+                    } else {
+                        const num = parseToNumber(trimmedPart);
+                        totalSum += num;
+                        formattedParts.push(formatNumber(num));
+                    }
+                }
+                return { sum: totalSum, formattedParts: formattedParts };
+            }
+
+            function formatInputElement(element) {
+                if (!element || !element.value) return;
+                const rawValue = element.value;
+                 // Don't format if the string contains special characters for percentage syntax
+                if (rawValue.includes('%') || rawValue.includes('(') || rawValue.includes(')')) {
+                    return;
+                }
+                
+                const parts = rawValue.split('+');
+                const formattedParts = parts.map(part => {
+                    const cleanedPart = part.trim().replace(/\s/g, '').replace(',', '.');
+                    if (cleanedPart === '' || isNaN(parseFloat(cleanedPart))) {
+                        return part.trim();
+                    }
+                    return parseFloat(cleanedPart).toLocaleString('ru-RU', { maximumFractionDigits: 4 });
+                });
+                element.value = formattedParts.join('+');
+            }
+
+            function autoResizeTextarea(element) {
+                if (!element) return;
+                element.style.height = 'auto';
+                element.style.height = (element.scrollHeight) + 'px';
+            }
+            
+            function updateSumPreview(id, value) {
+                 if (id === 'opsQrBuyouts') {
+                    const previewEl1 = document.getElementById('opsQrBuyouts-sum');
+                    const previewEl2 = document.getElementById('opsQrBuyouts-sum-percent');
+                    if (!previewEl1 || !previewEl2) return;
+
+                    const btn1 = document.querySelector(`.copy-preview-btn[data-target-id="opsQrBuyouts-sum"]`);
+                    const btn2 = document.querySelector(`.copy-preview-btn[data-target-id="opsQrBuyouts-sum-percent"]`);
+
+                    const parts = value.split('+').filter(p => p.trim() !== '');
+                    const numValues = parts.length;
+
+                    if (numValues === 0) {
+                        previewEl1.innerText = '';
+                        previewEl2.innerText = '';
+                        if (btn1) btn1.style.display = 'none';
+                        if (btn2) btn2.style.display = 'none';
+                        return;
+                    }
+                    if (btn1) btn1.style.display = 'inline-block';
+                    if (btn2) btn2.style.display = 'inline-block';
+
+                    const { sum: originalSum } = advancedParse(value);
+                    const formattedOriginalParts = parts.map(part => formatNumber(parseToNumber(part))).join('+');
+
+                    if (parts.length > 1) {
+                         previewEl1.innerText = `(${numValues}) (${formattedOriginalParts}=${formatNumber(originalSum)})`;
+                    } else {
+                         previewEl1.innerText = `(1) (${formatNumber(originalSum)})`;
+                    }
+                    
+                    let newSum = 0;
+                    const newParts = parts.map(part => {
+                        const num = parseToNumber(part);
+                        if (isNaN(num)) return part;
+                        const newNum = Math.ceil(num * 1.02);
+                        newSum += newNum;
+                        return formatNumber(newNum);
+                    });
+                    
+                    if (numValues > 1) {
+                        const line2expr = newParts.join('+') + '=' + formatNumber(newSum);
+                        previewEl2.innerText = `(${numValues}) (${line2expr})`;
+                    } else {
+                        previewEl2.innerText = `(1) (${formatNumber(newSum)})`;
+                    }
+                    return; 
+                }
+
+                // Normal case
+                const previewEl = document.getElementById(id + '-sum');
+                if (!previewEl) return;
+                const btn = document.querySelector(`.copy-preview-btn[data-target-id="${id}-sum"]`);
+                
+                const { sum, formattedParts } = advancedParse(value);
+                const numValues = formattedParts.length;
+
+                if (numValues === 0) {
+                    previewEl.innerText = '';
+                    if (btn) btn.style.display = 'none';
+                    return;
+                }
+                if (btn) btn.style.display = 'inline-block';
+                
+                if (numValues > 1) {
+                    previewEl.innerText = `(${numValues}) (${formattedParts.join('+')}=${formatNumber(sum)})`;
+                } else {
+                    previewEl.innerText = `(1) (${formattedParts.join('+')})`;
+                }
+            }
+            
+            function saveState() {
+                const state = {};
+                inputIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) state[id] = el.value;
+                });
+
+                const extraExpenses = [];
+                document.querySelectorAll('.extra-expense-group').forEach(group => {
+                    const nameEl = group.querySelector('.extra-expense-name');
+                    const valueEl = group.querySelector('.extra-expense-value');
+                    const rateEl = group.querySelector('.extra-expense-rate');
+                    if (nameEl && valueEl && rateEl) {
+                        const customRateEl = group.querySelector('.extra-expense-custom-rate');
+                        extraExpenses.push({
+                            name: nameEl.value,
+                            value: valueEl.value,
+                            rate: rateEl.value,
+                            customRate: customRateEl ? customRateEl.value : ''
+                        });
+                    }
+                });
+                state.extraExpenses = extraExpenses;
+                state.usdtTarget = document.getElementById('usdtTarget').value;
+                state.yuanTarget = document.getElementById('yuanTarget').value;
+                
+                try {
+                    localStorage.setItem('depositState', JSON.stringify(state));
+                } catch (e) {
+                    console.error('Ошибка сохранения состояния:', e);
+                }
+            }
+
+            function loadState() {
+                let state;
+                try {
+                    state = JSON.parse(localStorage.getItem('depositState'));
+                } catch (e) {
+                    console.error('Ошибка загрузки состояния:', e);
+                    return;
+                }
+
+                if (!state) return;
+
+                inputIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && state[id] !== undefined) {
+                        el.value = state[id];
+                        formatInputElement(el);
+                        updateSumPreview(id, el.value);
+                        autoResizeTextarea(el);
+                    }
+                });
+                
+                if (state.usdtTarget) document.getElementById('usdtTarget').value = state.usdtTarget;
+                if (state.yuanTarget) document.getElementById('yuanTarget').value = state.yuanTarget;
+
+                if (state.extraExpenses && Array.isArray(state.extraExpenses)) {
+                    state.extraExpenses.forEach(data => addExpenseField(data));
+                }
+                
+                updateQrBreakdown();
+            }
+
+            function getCombinations(arr, size) {
+                const result = [];
+                function combine(startIndex, currentCombination) {
+                    if (currentCombination.length === size) {
+                        result.push([...currentCombination]);
+                        return;
+                    }
+                    for (let i = startIndex; i < arr.length; i++) {
+                        currentCombination.push(arr[i]);
+                        combine(i + 1, currentCombination);
+                        currentCombination.pop();
+                    }
+                }
+                combine(0, []);
+                return result;
+            }
+
+            function calculateBreakdown(numbers) {
+                let items = [...numbers].sort((a, b) => b - a);
+                const chunks = [];
+                const leftovers = [];
+                const MIN_SUM = 20000;
+                const MAX_ITEMS = 4;
+
+                while (items.length > 0) {
+                    const largest = items[0];
+                    let chunkFound = false;
+                    if (items.length < 2) { leftovers.push(...items); break; }
+                    const otherItems = items.slice(1);
+                    
+                    for (let size = MAX_ITEMS - 1; size >= 1; size--) {
+                        if (otherItems.length < size) continue;
+                        const combinations = getCombinations(otherItems, size);
+                        for (const combo of combinations.reverse()) {
+                            if (combo.reduce((a, b) => a + b, 0) + largest > MIN_SUM) {
+                                const newChunk = [largest, ...combo];
+                                chunks.push(newChunk);
+                                const newChunkSet = new Set(newChunk);
+                                items = items.filter(item => {
+                                    if (newChunkSet.has(item)) { newChunkSet.delete(item); return false; }
+                                    return true;
+                                });
+                                chunkFound = true; break;
+                            }
+                        }
+                        if (chunkFound) break;
+                    }
+                    if (!chunkFound) { leftovers.push(largest); items.shift(); }
+                }
+                return { chunks, leftovers };
+            }
+
+            function updateQrBreakdown() {
+                const groupingValue = document.getElementById('opsQrForGrouping').value;
+                const breakdownOutput = document.getElementById('qrBuyoutsBreakdown');
+                const manualValue = document.getElementById('opsQrBuyouts').value;
+
+                if (!breakdownOutput) return;
+
+                let outputText = [];
+                const groupingNumbers = advancedParse(groupingValue).sum > 0 ? groupingValue.split('+').map(p => parseToNumber(p.trim())).filter(n => n > 0) : [];
+                const manualNumbers = advancedParse(manualValue).sum > 0 ? manualValue.split('+').map(p => parseToNumber(p.trim())).filter(n => n > 0) : [];
+
+                let missingNumbers = [];
+                
+                if (groupingNumbers.length > 0) {
+                    const result = calculateBreakdown(groupingNumbers);
+                    result.chunks.forEach((chunk, index) => {
+                        const sum = chunk.reduce((a, b) => a + b, 0);
+                        outputText.push(`Группа ${index + 1} (${chunk.length}): ${chunk.join(' + ')} = ${formatNumber(sum)}`);
+                    });
+                    if (result.leftovers.length > 0) outputText.push(`Остаток: ${result.leftovers.join(', ')}`);
+                    outputText.push(`Итог (${groupingNumbers.length}): ${formatNumber(groupingNumbers.reduce((a, b) => a + b, 0))}`);
+                }
+
+                if (manualNumbers.length > 0) {
+                    const groupingNumbersFreq = {};
+                    groupingNumbers.forEach(n => { groupingNumbersFreq[n] = (groupingNumbersFreq[n] || 0) + 1; });
+                    manualNumbers.forEach(n => {
+                        if (groupingNumbersFreq[n] && groupingNumbersFreq[n] > 0) groupingNumbersFreq[n]--;
+                        else missingNumbers.push(n);
+                    });
+                    if (missingNumbers.length > 0) {
+                        if (outputText.length > 0) outputText.push('---');
+                        outputText.push(`Ручные (${missingNumbers.length}): ${missingNumbers.join('+')} = ${formatNumber(missingNumbers.reduce((a,b)=>a+b,0))}`);
+                    }
+                }
+                
+                const allNumbers = [...groupingNumbers, ...missingNumbers];
+                if (allNumbers.length > 0 && missingNumbers.length > 0) {
+                    if (outputText.length > 0) outputText.push('---');
+                    outputText.push(`Общая сумма (${allNumbers.length}): ${formatNumber(allNumbers.reduce((a,b)=>a+b,0))}`);
+                }
+
+                breakdownOutput.value = outputText.join('\n');
+                autoResizeTextarea(breakdownOutput);
+            }
+
+            function addExpenseField(data = { name: '', value: '', rate: 'rateQr', customRate: '' }) {
+                const container = document.getElementById('extraExpensesContainer');
+                const fieldId = `extraExpense_${Date.now()}_${Math.random()}`;
+
+                const group = document.createElement('div');
+                group.className = 'form-group extra-expense-group';
+                group.id = fieldId;
+                group.style.cssText = 'background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-top:10px;';
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'extra-expense-name';
+                nameInput.placeholder = 'Название расхода';
+                nameInput.value = data.name;
+                nameInput.style.cssText = 'width: 60%; border: none; background: none; padding: 0; font-size: 1em; font-weight: 600; color: var(--secondary-text-color); margin-bottom: 5px;';
+                
+                const valueTextarea = document.createElement('textarea');
+                valueTextarea.className = 'extra-expense-value';
+                valueTextarea.placeholder = '100+(200+5%)+300';
+                valueTextarea.value = data.value;
+                valueTextarea.rows = 1;
+
+                const rateSelect = document.createElement('select');
+                rateSelect.className = 'extra-expense-rate';
+                rateSelect.style.cssText = 'padding: 5px; border-radius: 4px; border: 1px solid var(--border-color); margin-top: 5px;';
+                const rates = { 'rub': 'Рубли', 'rateQr': 'Qr', 'rateCard': 'Карты', 'rateUs': 'Us' };
+                for (const [value, text] of Object.entries(rates)) {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = text;
+                    if (data.rate === value) option.selected = true;
+                    rateSelect.appendChild(option);
+                }
+
+                const customRateInput = document.createElement('textarea');
+                customRateInput.className = 'extra-expense-custom-rate';
+                customRateInput.placeholder = 'Свой курс для Us';
+                customRateInput.value = data.customRate || '';
+                customRateInput.rows = 1;
+                customRateInput.style.cssText = 'padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); margin-top: 5px; display: none; width: 100%; box-sizing: border-box;';
+
+                const handleRateChange = () => {
+                    if (rateSelect.value === 'rateUs') {
+                        customRateInput.style.display = 'block';
+                        autoResizeTextarea(customRateInput);
+                    } else {
+                        customRateInput.style.display = 'none';
+                    }
+                };
+                
+                rateSelect.addEventListener('change', () => {
+                    handleRateChange();
+                    saveState();
+                });
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Удалить';
+                removeBtn.style.cssText = 'background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-size: 0.9em;';
+                removeBtn.onclick = () => { group.remove(); saveState(); };
+
+                group.appendChild(nameInput);
+                group.appendChild(valueTextarea);
+                group.appendChild(rateSelect);
+                group.appendChild(customRateInput);
+                group.appendChild(removeBtn);
+                container.appendChild(group);
+
+                // Attach listeners
+                [nameInput, valueTextarea, rateSelect, customRateInput].forEach(el => {
+                    el.addEventListener('input', () => { 
+                        if (el.tagName === 'TEXTAREA') autoResizeTextarea(el); 
+                        saveState(); 
+                    });
+                });
+                
+                valueTextarea.addEventListener('blur', () => formatInputElement(valueTextarea));
+                customRateInput.addEventListener('blur', () => formatInputElement(customRateInput));
+                
+                // Initial setup
+                handleRateChange();
+                autoResizeTextarea(valueTextarea);
+                formatInputElement(valueTextarea);
+            }
+            
+            document.getElementById('addExpenseBtn').addEventListener('click', () => addExpenseField());
+            document.getElementById('usdtTarget').addEventListener('change', saveState);
+            document.getElementById('yuanTarget').addEventListener('change', saveState);
+
+            inputIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', (event) => {
+                        updateSumPreview(event.target.id, event.target.value);
+                        if (event.target.id === 'opsQrForGrouping' || event.target.id === 'opsQrBuyouts') {
+                            updateQrBreakdown();
+                        }
+                        autoResizeTextarea(event.target);
+                        saveState();
+                    });
+                    element.addEventListener('keydown', (event) => { if (event.key === 'Enter') event.preventDefault(); });
+                    element.addEventListener('blur', (event) => { formatInputElement(event.target); saveState(); });
+                }
+            });
+
+            document.getElementById('calculateBtn').addEventListener('click', () => {
+                const rates = {
+                    rateQr: advancedParse(document.getElementById('rateQr').value).sum,
+                    rateCard: advancedParse(document.getElementById('rateCard').value).sum,
+                    rateUs: advancedParse(document.getElementById('rateUs').value).sum,
+                    rub: 1
+                };
+
+                const processField = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return { sum: 0, formattedParts: [] };
+                    return advancedParse(el.value);
+                };
+                
+                const initialDeposit = processField('initialDeposit').sum;
+
+                let data = {
+                    'Пополнение': { ...processField('opsTopUp') },
+                    'Qr': { ...processField('opsQr'), rate: rates.rateQr, rateKey: 'rateQr' },
+                    'Golden': { ...processField('opsGolden'), rate: rates.rateQr, rateKey: 'rateQr' },
+                    'Golden балансы': { ...processField('opsGoldenBalances'), rate: rates.rateQr, rateKey: 'rateQr' },
+                    'Выкупы Qr клиент': { ...processField('opsQrBuyoutsClient'), rate: rates.rateQr, rateKey: 'rateQr' },
+                    'Карты': { ...processField('opsCard'), rate: rates.rateCard, rateKey: 'rateCard' },
+                    'Us': { ...processField('opsUs'), rate: rates.rateUs, rateKey: 'rateUs' },
+                    'Расход по складу': { ...processField('opsWarehouse'), rate: rates.rateQr, rateKey: 'rateQr' }
+                };
+
+                document.querySelectorAll('.extra-expense-group').forEach(group => {
+                    const name = group.querySelector('.extra-expense-name').value.trim() || 'Доп. расход';
+                    const value = group.querySelector('.extra-expense-value').value;
+                    const rateKey = group.querySelector('.extra-expense-rate').value;
+                    const parsedData = advancedParse(value);
+                    if (parsedData.sum > 0) {
+                       let rateForThisExpense = rates[rateKey]; // Default to global rate
+                       if (rateKey === 'rateUs') {
+                           const customRateEl = group.querySelector('.extra-expense-custom-rate');
+                           if (customRateEl && customRateEl.value.trim() !== '') {
+                               rateForThisExpense = advancedParse(customRateEl.value).sum;
+                           }
+                       }
+                        data[name] = { ...parsedData, rate: rateForThisExpense, rateKey: rateKey };
+                    }                });
+
+                let breakdown = [];
+                let total = initialDeposit;
+                let calculationLine = [formatNumber(initialDeposit)];
+
+                if (data['Пополнение'].sum !== 0) {
+                    data['Пополнение'].formattedParts.forEach(part => {
+                        // A bit tricky to get the raw number back, so we re-parse for calculation
+                        const num = parseToNumber(part);
+                        if (num !== 0) {
+                            const partRounded = Math.ceil(num);
+                            total += partRounded;
+                            calculationLine.push(`+${formatNumber(partRounded)}`);
+                        }
+                    });
+                }
+                
+                calculationLine.push(`=${formatNumber(total)}`);
+
+                // Пополнения USDT и юани: уменьшают выбранный расчёт (Оплаты Qr / Golden / Golden балансы)
+                const targetKeyOf = (v) => v === 'golden' ? 'Golden' : (v === 'goldenBalance' ? 'Golden балансы' : 'Qr');
+                const deductions = [];
+
+                const usdtAmount = processField('opsUsdt').sum;
+                const usdtRate = advancedParse(document.getElementById('rateUsdt').value).sum;
+                const usdtRub = (usdtAmount > 0 && usdtRate > 0) ? Math.ceil(usdtAmount * usdtRate) : 0;
+                if (usdtRub > 0) {
+                    deductions.push({
+                        key: targetKeyOf(document.getElementById('usdtTarget').value),
+                        amount: usdtRub,
+                        block: `Пополнение ${formatNumber(usdtAmount)} usdt\n${formatNumber(usdtAmount)}*${formatNumber(usdtRate)}=${formatNumber(usdtRub)}\n\n`
+                    });
+                }
+
+                const yuanAmount = processField('opsYuan').sum;
+                if (yuanAmount > 0) {
+                    deductions.push({
+                        key: targetKeyOf(document.getElementById('yuanTarget').value),
+                        amount: yuanAmount,
+                        block: `Пополнение ${formatNumber(yuanAmount)} юаней\n\n`
+                    });
+                }
+
+                Object.entries(data).forEach(([key, item]) => {
+                    const myDeds = deductions.filter(d => d.key === key);
+                    const hasDed = myDeds.length > 0;
+                    if (key === 'Пополнение' || (item.sum === 0 && !hasDed)) return;
+
+                    const dedTotal = myDeds.reduce((a, d) => a + d.amount, 0);
+                    const netSum = item.sum - dedTotal;
+                    const finalValue = netSum * item.rate;
+                    if (item.formattedParts.length > 0 || hasDed) {
+                       let line;
+                       let displayKey = key;
+                       const inputString = item.formattedParts.join('+');
+                       
+                       let rateDisplay = '';
+                       if (item.rateKey !== 'rub' && item.rate && item.rate !== 1) {
+                            rateDisplay = `*${formatNumber(item.rate)}`;
+                       }
+                       if (key === 'Выкупы Qr клиент') {
+                           displayKey = 'Выкупы';
+                       }
+                       
+                       const hasMultipleParts = item.formattedParts.length > 1 || (item.formattedParts[0] || '').includes('=');
+                       
+                       let expr = inputString || formatNumber(0);
+                       if (hasMultipleParts) expr += `=${formatNumber(item.sum)}`;
+                       if (hasDed) expr += myDeds.map(d => `-${formatNumber(d.amount)}`).join('') + `=${formatNumber(netSum)}`;
+                       const body = `${expr}${rateDisplay}=${formatNumber(finalValue)}`;
+                       const dedPrefix = myDeds.map(d => d.block).join('');
+                       
+                       if (key === 'Qr') { // Special case for Qr: no header
+                           line = `${dedPrefix}${body}`;
+                       } else {
+                           line = `${dedPrefix}${displayKey}:\n${body}`;
+                       }
+                       breakdown.push(line);
+    
+                    }
+                    const finalValueRounded = Math.ceil(finalValue);
+                    total -= finalValueRounded;
+                    calculationLine.push(`-${formatNumber(finalValueRounded)}`);
+                });
+                
+                // Отдельная строка "Golden баланс": Баланс - сумма Golden балансы (без курса и USDT)
+                let goldenBalanceBlock = '';
+                const gbSumRaw = processField('opsGoldenBalances').sum;
+                const gbBalance = processField('opsGoldenBalance').sum;
+                if (gbSumRaw !== 0 || gbBalance !== 0) {
+                    goldenBalanceBlock = `Golden баланс: ${formatNumber(gbBalance)}-${formatNumber(gbSumRaw)}=${formatNumber(gbBalance - gbSumRaw)}`;
+                }
+
+                const finalResultString = [
+                    breakdown.join('\n\n'),
+                    '',
+                    calculationLine.join('') + `=${formatNumber(total)}`,
+                    '',
+                    ...(goldenBalanceBlock ? [goldenBalanceBlock, ''] : []),
+                    `Депозит: *${formatNumber(total)}*`
+                ].join('\n');
+                
+                document.getElementById('resultOutput').value = finalResultString;
+                autoResizeTextarea(document.getElementById('resultOutput'));
+            });
+
+            document.getElementById('copyBtn').addEventListener('click', () => {
+                const output = document.getElementById('resultOutput');
+                if (!output.value) { alert('Сначала рассчитайте результат!'); return; }
+                navigator.clipboard.writeText(output.value).then(() => alert('Результат скопирован!'));
+            });
+
+            function addCopyButtons() {
+                document.querySelectorAll('.sum-preview').forEach(span => {
+                    if (span.nextSibling && span.nextSibling.classList && span.nextSibling.classList.contains('copy-preview-btn')) return;
+                    const button = document.createElement('button');
+                    button.title = 'Копировать выражение';
+                    button.className = 'copy-preview-btn';
+                    button.dataset.targetId = span.id;
+                    button.innerHTML = '📋';
+                    button.style.display = 'none';
+
+                    button.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const targetId = event.currentTarget.dataset.targetId;
+                        const previewEl = document.getElementById(targetId);
+                        if (!previewEl || !previewEl.innerText) return;
+                        
+                        const fullText = previewEl.innerText;
+                        const lastOpenParen = fullText.lastIndexOf('(');
+                        const lastCloseParen = fullText.lastIndexOf(')');
+                        let textToCopy = '';
+                        if (lastOpenParen !== -1 && lastCloseParen > lastOpenParen) {
+                            textToCopy = fullText.substring(lastOpenParen + 1, lastCloseParen);
+                        }
+                        if (!textToCopy) return;
+                        
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            const originalText = event.currentTarget.innerHTML;
+                            event.currentTarget.innerHTML = '✔️';
+                            setTimeout(() => { event.currentTarget.innerHTML = originalText; }, 1200);
+                        });
+                    });
+                    span.parentNode.insertBefore(button, span.nextSibling);
+                });
+            }
+
+            addCopyButtons();
+            loadState();
+        });
+    </script>
+</body>
+</html>
