@@ -134,6 +134,8 @@
                 <textarea id="opsQrBuyoutsClient" placeholder="510+255" inputmode="decimal" rows="1"></textarea>
             </div>
             <div class="form-group"><label for="opsCard">Карты <span class="sum-preview" id="opsCard-sum"></span></label><textarea id="opsCard" placeholder="10000+2500" inputmode="decimal" rows="1"></textarea></div>
+            <div class="form-group"><label for="opsCardGolden">Golden Карты <span class="sum-preview" id="opsCardGolden-sum"></span></label><textarea id="opsCardGolden" placeholder="3500+1900" inputmode="decimal" rows="1"></textarea></div>
+            <div class="form-group"><label for="opsCardGoldenBalances">Golden балансы Карты <span class="sum-preview" id="opsCardGoldenBalances-sum"></span></label><textarea id="opsCardGoldenBalances" placeholder="1000+500" inputmode="decimal" rows="1"></textarea></div>
             <div class="form-group"><label for="opsUs">Us <span class="sum-preview" id="opsUs-sum"></span></label><textarea id="opsUs" placeholder="100+50" inputmode="decimal" rows="1"></textarea></div>
             <div class="form-group"><label for="opsWarehouse">Расход по складу <span class="sum-preview" id="opsWarehouse-sum"></span></label><textarea id="opsWarehouse" placeholder="123" inputmode="decimal" rows="1"></textarea></div>
             
@@ -153,7 +155,7 @@
             const inputIds = [
                 'initialDeposit', 'rateQr', 'rateCard', 'rateUs',
                 'opsUsdt', 'rateUsdt', 'opsYuan', 'opsGolden', 'opsGoldenBalances', 'opsGoldenBalance',
-                'opsTopUp', 'opsQr', 'opsQrBuyouts', 'opsQrForGrouping', 'opsQrBuyoutsClient', 'opsCard', 'opsUs', 'opsWarehouse'
+                'opsTopUp', 'opsQr', 'opsQrBuyouts', 'opsQrForGrouping', 'opsQrBuyoutsClient', 'opsCard', 'opsCardGolden', 'opsCardGoldenBalances', 'opsUs', 'opsWarehouse'
             ];
             
             const formatNumber = (num) => num.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -590,6 +592,8 @@
                     'Golden балансы': { ...processField('opsGoldenBalances'), rate: rates.rateQr, rateKey: 'rateQr' },
                     'Выкупы Qr клиент': { ...processField('opsQrBuyoutsClient'), rate: rates.rateQr, rateKey: 'rateQr' },
                     'Карты': { ...processField('opsCard'), rate: rates.rateCard, rateKey: 'rateCard' },
+                    'Golden Карты': { ...processField('opsCardGolden'), rate: rates.rateCard, rateKey: 'rateCard' },
+                    'Golden балансы Карты': { ...processField('opsCardGoldenBalances'), rate: rates.rateCard, rateKey: 'rateCard' },
                     'Us': { ...processField('opsUs'), rate: rates.rateUs, rateKey: 'rateUs' },
                     'Расход по складу': { ...processField('opsWarehouse'), rate: rates.rateQr, rateKey: 'rateQr' }
                 };
@@ -694,12 +698,16 @@
                     calculationLine.push(`-${formatNumber(finalValueRounded)}`);
                 });
                 
-                // Отдельная строка "Golden баланс": Баланс - сумма Golden балансы (без курса и USDT)
+                // Отдельная строка "Golden баланс": Баланс - сумма Golden балансы - сумма Golden балансы Карты (без курса и USDT)
                 let goldenBalanceBlock = '';
                 const gbSumRaw = processField('opsGoldenBalances').sum;
+                const gbCardRaw = processField('opsCardGoldenBalances').sum;
                 const gbBalance = processField('opsGoldenBalance').sum;
-                if (gbSumRaw !== 0 || gbBalance !== 0) {
-                    goldenBalanceBlock = `Golden баланс: ${formatNumber(gbBalance)}-${formatNumber(gbSumRaw)}=${formatNumber(gbBalance - gbSumRaw)}`;
+                if (gbSumRaw !== 0 || gbCardRaw !== 0 || gbBalance !== 0) {
+                    let gbExpr = formatNumber(gbBalance);
+                    if (gbSumRaw !== 0 || gbCardRaw === 0) gbExpr += `-${formatNumber(gbSumRaw)}`;
+                    if (gbCardRaw !== 0) gbExpr += `-${formatNumber(gbCardRaw)}`;
+                    goldenBalanceBlock = `Golden баланс: ${gbExpr}=${formatNumber(gbBalance - gbSumRaw - gbCardRaw)}`;
                 }
 
                 const finalResultString = [
