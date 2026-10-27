@@ -91,7 +91,7 @@
                     <div class="form-group"><label for="rateUsdt">Курс USDT</label><textarea id="rateUsdt" placeholder="6.59" inputmode="decimal" rows="1"></textarea></div>
                     <div class="form-group"><label for="usdtTarget">Добавить в расчёт</label>
                         <select id="usdtTarget" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg-color); font-size: 1.1em; box-sizing: border-box;">
-                            <option value="qr">Оплаты</option>
+                            <option value="qr">MMKSU</option>
                             <option value="golden">Golden</option>
                             <option value="goldenBalance">Golden балансы</option>
                         </select>
@@ -103,13 +103,13 @@
                 <textarea id="opsYuan" placeholder="1000" inputmode="decimal" rows="1"></textarea>
                 <div class="form-group" style="margin-top: 10px; margin-bottom: 0;"><label for="yuanTarget">Добавить в расчёт</label>
                     <select id="yuanTarget" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg-color); font-size: 1.1em; box-sizing: border-box;">
-                        <option value="qr">Оплаты</option>
+                        <option value="qr">MMKSU</option>
                         <option value="golden">Golden</option>
                         <option value="goldenBalance">Golden балансы</option>
                     </select>
                 </div>
             </div>
-            <div class="form-group"><label for="opsQr">Оплаты Qr <span class="sum-preview" id="opsQr-sum"></span></label><textarea id="opsQr" placeholder="3500+1900" inputmode="decimal" rows="1"></textarea></div>
+            <div class="form-group"><label for="opsQr">MMKSU <span class="sum-preview" id="opsQr-sum"></span></label><textarea id="opsQr" placeholder="3500+1900" inputmode="decimal" rows="1"></textarea></div>
             <div class="form-group"><label for="opsGolden">Golden <span class="sum-preview" id="opsGolden-sum"></span></label><textarea id="opsGolden" placeholder="3500+1900" inputmode="decimal" rows="1"></textarea></div>
             <div class="rates-container" style="margin-bottom: 15px;">
                 <div class="form-group"><label for="opsGoldenBalances">Golden балансы <span class="sum-preview" id="opsGoldenBalances-sum"></span></label><textarea id="opsGoldenBalances" placeholder="1000+500" inputmode="decimal" rows="1"></textarea></div>
@@ -685,11 +685,8 @@
                        const body = `${expr}${rateDisplay}=${formatNumber(finalValue)}`;
                        const dedPrefix = myDeds.map(d => d.block).join('');
                        
-                       if (key === 'Qr') { // Special case for Qr: no header
-                           line = `${dedPrefix}${body}`;
-                       } else {
-                           line = `${dedPrefix}${displayKey}:\n${body}`;
-                       }
+                       if (key === 'Qr') displayKey = 'MMKSU';
+                       line = `${dedPrefix}${displayKey}:\n${body}`;
                        breakdown.push(line);
     
                     }
